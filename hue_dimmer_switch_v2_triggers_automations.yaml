@@ -1,0 +1,112 @@
+blueprint:
+  name: ZHA - Philips Hue Dimmer Switch - V2 - CUSTOM
+  description: "Triggers existing automation"
+  domain: automation
+  source_url: ""
+  input:
+    remote:
+      name: Philips Hue Dimmer Switch
+      description: Pick either RWL020 (US) or RWL021 (EU)
+      selector:
+        device:
+          integration: zha
+          entity:
+            domain: sensor
+            device_class: battery
+    power_automation:
+      name: Automation to trigger
+      description: "Power button automation to trigger"
+      selector:
+        entity:
+          domain: automation
+    power_off_automation:
+      name: Automation to trigger
+      description: "Power off automation to trigger"
+      selector:
+        entity:
+          domain: automation
+    up_press_automation:
+      name: Automation to trigger
+      description: "Up button automation to trigger"
+      selector:
+        entity:
+          domain: automation
+    up_hold_automation:
+      name: Automation to trigger
+      description: "Long press Up button automation to trigger"
+      selector:
+        entity:
+          domain: automation
+    down_press_automation:
+      name: Automation to trigger
+      description: "Down button automation to trigger"
+      selector:
+        entity:
+          domain: automation
+    down_hold_automation:
+      name: Automation to trigger
+      description: "Long press Down button automation to trigger"
+      selector:
+        entity:
+          domain: automation
+mode: restart
+max_exceeded: silent
+variables:
+  power_automation: !input "power_automation"
+  power_off_automation: !input "power_off_automation"
+  up_press_automation: !input "up_press_automation"
+  up_hold_automation: !input "up_hold_automation"
+  down_press_automation: !input "down_press_automation"
+  down_hold_automation: !input "up_holdown_hold_automationd_automation"
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input "remote"
+      cluster_id: 64512
+action:
+  - variables:
+      command: "{{ trigger.event.data.command }}"
+  - choose:
+      - conditions: "{{ command == 'on_press' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "power_automation"
+      - conditions: "{{ command == 'on_double_press' }}"
+        sequence: !input "button_on_double"
+      - conditions: "{{ command == 'on_triple_press' }}"
+        sequence: !input "button_on_triple"
+      - conditions: "{{ command == 'on_hold' }}"
+        sequence: !input "button_on_long"
+      - conditions: "{{ command == 'off_press' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "power_off_automation"
+      - conditions: "{{ command == 'off_double_press' }}"
+        sequence: !input "button_off_double"
+      - conditions: "{{ command == 'off_triple_press' }}"
+        sequence: !input "button_off_triple"
+      - conditions: "{{ command == 'off_hold' }}"
+        sequence: !input "button_off_long"
+      - conditions: "{{ command == 'up_press' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "up_press_automation"
+      - conditions: "{{ command == 'up_hold' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "up_hold_automation"
+      - conditions: "{{ command == 'down_press' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "down_press_automation"
+      - conditions: "{{ command == 'down_hold' }}"
+        sequence:
+          - service: automation.trigger
+            data:
+              entity_id: !input "down_hold_automation"
